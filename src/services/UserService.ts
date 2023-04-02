@@ -1,46 +1,63 @@
-export interface User {
-  name: string;
-  email: string;
-}
-
-const db = [
-  {
-    name: "Joana",
-    email: "joana@dio.com",
-  },
-];
+import { sign } from "jsonwebtoken";
+import { AppDataSource } from "../database";
+import { User } from "../entities/User";
+import { UserRepository } from "../repositories/UserRepository";
 
 export class UserService {
-  db: User[];
+  private userRepository: UserRepository;
 
-  constructor(database = db) {
-    this.db = database;
+  constructor(userRepository = new UserRepository(AppDataSource.manager)) {
+    this.userRepository = userRepository;
   }
 
-  createUser(name: string, email: string): User[] | {} {
-    const user = {
-      name,
-      email,
-    };
-
-    if (!name || !email) {
-      return { message: "Nome e email são campos Obrigatórios." };
+  async createUser(
+    name: string,
+    email: string,
+    password: string
+  ): Promise<User> {
+    if (!name || !email || !password) {
+      throw new Error("Todos os campos são obrigatórios!");
     }
 
-    this.db.push(user);
-    return this.db;
+    const user = new User(name, email, password);
+    return this.userRepository.createUser(user);
   }
 
-  getAllUsers(): User[] {
-    return this.db;
+  async getUserById(user_id: string) {
+    return this.userRepository.getUserById(user_id);
   }
 
-  deleteUser(email: string): string | null {
-    const users = this.db.filter((user) => user.email === email);
-    if (users.length === 0) return null;
+  async getAllUsers() {
+    return await this.userRepository.getAllUsers();
+  }
 
-    this.db = this.db.filter((user) => user.email != email);
+  async deleteUser(user_id: string) {
+    return await this.userRepository.deleteUser(user_id);
+  }
 
-    return "Usuário Deletado com sucesso.";
+  getAuthenticatedUser(email: string, password: string): Promise<User | null> {
+    return this.userRepository.getUserByEmailAndPassword(email, password);
+  }
+
+  async getToken(email: string, password: string): Promise<string> {
+    const user = await this.getAuthenticatedUser(email, password);
+
+    if (!user) {
+      throw new Error("Usuário/senha incorreto!");
+    }
+
+    const tokenData = {
+      name: user.name,
+      email: user.email,
+    };
+    const tokenKey = "5dws25wf5wf2d58sv2dq5c212";
+
+    const tokenOptions = {
+      subject: user.user_id,
+    };
+
+    const token = sign(tokenData, tokenKey, tokenOptions);
+
+    return token;
   }
 }
