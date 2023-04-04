@@ -97,4 +97,44 @@ describe("UserRepository", () => {
     });
     expect(response).toEqual(mockUser);
   });
+
+  it("deve retornar nulo ao buscar um usuário pelo email incorreto", async () => {
+    const mockUser = buildMockUser();
+    const incorrectEmail = "emailIncorreto@teste.com";
+    managerMock.findOne = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(null));
+    const response = await userRepository.getUserByEmailAndPassword(
+      incorrectEmail,
+      mockUser.password
+    );
+
+    expect(managerMock.findOne).toHaveBeenCalledWith(User, {
+      where: {
+        email: incorrectEmail,
+        password: mockUser.password,
+      },
+    });
+    expect(response).toBeNull();
+  });
+
+  it("deve retornar nulo ao buscar um usuário pelo password incorreto", async () => {
+    const mockUser = buildMockUser();
+    const incorrectPassword = "1nc0rrEctPassw0rd";
+    managerMock.findOne = jest
+      .fn()
+      .mockImplementation(() => Promise.resolve(null));
+    const response = await userRepository.getUserByEmailAndPassword(
+      mockUser.email,
+      incorrectPassword
+    );
+
+    expect(managerMock.findOne).toHaveBeenCalledWith(User, {
+      where: {
+        email: mockUser.email,
+        password: incorrectPassword,
+      },
+    });
+    expect(response).toBeNull();
+  });
 });

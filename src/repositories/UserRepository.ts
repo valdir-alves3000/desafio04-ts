@@ -39,7 +39,8 @@ export class UserRepository {
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await this.manager.find(User);
+    const users = await this.manager.find(User);
+    return users;
   }
 
   async deleteUser(user_id: string): Promise<void> {

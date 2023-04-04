@@ -35,7 +35,7 @@ export class UserService {
     return await this.userRepository.deleteUser(user_id);
   }
 
-  getAuthenticatedUser(email: string, password: string): Promise<User | null> {
+  async getAuthenticatedUser(email: string, password: string): Promise<User | null> {
     return this.userRepository.getUserByEmailAndPassword(email, password);
   }
 
